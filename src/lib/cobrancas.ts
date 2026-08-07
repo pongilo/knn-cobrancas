@@ -39,6 +39,7 @@ interface LinhaInterna extends LinhaCobranca {
 interface AlunoClassificado extends Aluno {
   tipo: TipoMensagem;
   ordem: number;
+  telefoneChave: string;
 }
 
 function fmt(n: number): string {
@@ -178,33 +179,37 @@ export function gerarLinhas(rows: LinhaOrigem[]): LinhaCobranca[] {
     const diff = diasAteVencimento(st.vencimento, hojeUTC);
     const classificacao = classificarGrupo(diff);
     if (classificacao.tipo === 'futuro') continue;
-    entradas.push({ ...st, tipo: classificacao.tipo, ordem: classificacao.ordem });
+    const telefoneChave = st.respCel || st.alunoCel;
+    entradas.push({ ...st, tipo: classificacao.tipo, ordem: classificacao.ordem, telefoneChave });
   }
 
-  // 3) Agrupa por responsavel (se nao houver, o proprio aluno e o responsavel).
-  // Se o responsavel tiver alguma parcela em atraso, TODAS as parcelas pendentes dele
-  // (vencidas ou ainda a vencer) entram numa unica mensagem — assim quem ja esta com uma
-  // cobranca vencida nao recebe um aviso separado so porque outra parcela ainda vai vencer.
+  // 3) Agrupa pelo numero que vai receber a mensagem: o celular do responsavel financeiro
+  // ou, na falta dele, o celular do proprio aluno. O agrupamento e pelo numero (nao pelo nome)
+  // porque o que importa e mandar uma unica mensagem no whatsapp com o total devido daquele
+  // numero, mesmo que o nome do responsavel varie entre parcelas. Sem nenhum celular cadastrado,
+  // cada aluno fica isolado (nao ha numero em comum para juntar).
+  // Se o numero tiver alguma parcela em atraso, TODAS as parcelas pendentes dele (vencidas ou
+  // ainda a vencer) entram numa unica mensagem — assim quem ja esta com uma cobranca vencida
+  // nao recebe um aviso separado so porque outra parcela ainda vai vencer.
   // Sem parcela em atraso, os avisos so se juntam quando caem exatamente na mesma data,
   // senao a mensagem ficaria com uma data que nao corresponde ao valor total.
-  const porResponsavel: Record<string, AlunoClassificado[]> = {};
+  const porTelefone: Record<string, AlunoClassificado[]> = {};
   for (const e of entradas) {
-    const temResp = e.responsavel.length > 0;
-    const responsavelKey = temResp ? 'resp::' + e.responsavel.toLowerCase() : 'aluno::' + e.aluno.toLowerCase();
-    if (!porResponsavel[responsavelKey]) porResponsavel[responsavelKey] = [];
-    porResponsavel[responsavelKey].push(e);
+    const telefoneKey = e.telefoneChave ? 'tel::' + e.telefoneChave : 'aluno::' + e.aluno.toLowerCase();
+    if (!porTelefone[telefoneKey]) porTelefone[telefoneKey] = [];
+    porTelefone[telefoneKey].push(e);
   }
 
   const groups: Record<string, AlunoClassificado[]> = {};
-  for (const responsavelKey in porResponsavel) {
-    const entradasResp = porResponsavel[responsavelKey];
-    const temAtraso = entradasResp.some((e) => e.tipo === 'atraso');
+  for (const telefoneKey in porTelefone) {
+    const entradasTel = porTelefone[telefoneKey];
+    const temAtraso = entradasTel.some((e) => e.tipo === 'atraso');
     if (temAtraso) {
-      groups[responsavelKey + '::atraso'] = entradasResp;
+      groups[telefoneKey + '::atraso'] = entradasTel;
       continue;
     }
-    for (const e of entradasResp) {
-      const gkey = responsavelKey + '::' + e.vencimento;
+    for (const e of entradasTel) {
+      const gkey = telefoneKey + '::' + e.vencimento;
       if (!groups[gkey]) groups[gkey] = [];
       groups[gkey].push(e);
     }
@@ -217,20 +222,12 @@ export function gerarLinhas(rows: LinhaOrigem[]): LinhaCobranca[] {
       .slice()
       .sort((a, b) => dataParaOrdenacao(a.vencimento) - dataParaOrdenacao(b.vencimento));
     const first = members[0];
-    const temResp = first.responsavel.length > 0;
-    const responsavel = temResp ? first.responsavel : first.aluno;
-    let telefone = '';
-    for (const m of members) {
-      if (temResp && m.respCel) {
-        telefone = m.respCel;
-        break;
-      }
-      if (!temResp && m.alunoCel) {
-        telefone = m.alunoCel;
-        break;
-      }
-    }
-    if (!telefone) telefone = first.alunoCel;
+    const telefone = first.telefoneChave;
+
+    // O grupo e por numero, entao pode haver mais de um nome de responsavel associado
+    // ao mesmo telefone (ex.: grafias diferentes na planilha) — usa o primeiro encontrado.
+    const nomesResponsavel = [...new Set(members.map((m) => m.responsavel).filter(Boolean))];
+    const responsavel = nomesResponsavel.length > 0 ? nomesResponsavel[0] : first.aluno;
 
     const soma = members.reduce((a, b) => a + b.total, 0);
     const venc = first.vencimento; // parcela mais antiga do grupo
