@@ -13,5 +13,5 @@ export function IndeterminateCheckbox({
     }
   }, [indeterminate, rest.checked]);
 
-  return <input type="checkbox" ref={ref} {...rest} />;
+  return <input type="checkbox" ref={ref} {...rest} className="h-4 w-4 cursor-pointer accent-blue-500" />;
 }

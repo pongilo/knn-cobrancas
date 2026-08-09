@@ -85,13 +85,19 @@ export function CobrancasTable({ linhas, rowSelection, onRowSelectionChange, sta
   });
 
   return (
-    <div className="table-wrap">
-      <table className="table">
+    <div className="overflow-x-auto rounded-xl border border-slate-200">
+      <table className="w-full border-collapse text-left text-sm">
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <th key={header.id} className={header.column.id === 'select' ? 'col-checkbox' : undefined}>
+                <th
+                  key={header.id}
+                  className={
+                    'sticky top-0 whitespace-nowrap border-b border-slate-200 bg-slate-100 px-3.5 py-2.5 align-top font-semibold text-slate-900' +
+                    (header.column.id === 'select' ? ' w-px text-center' : '')
+                  }
+                >
                   {header.isPlaceholder ? null : <table.FlexRender header={header} />}
                 </th>
               ))}
@@ -100,20 +106,21 @@ export function CobrancasTable({ linhas, rowSelection, onRowSelectionChange, sta
         </thead>
         <tbody>
           {table.getRowModel().rows.map((row) => (
-            <tr key={row.id}>
+            <tr key={row.id} className="last:[&>td]:border-b-0 hover:bg-blue-50">
               {row.getAllCells().map((cell) => (
                 <td
                   key={cell.id}
                   className={
-                    cell.column.id === 'select'
-                      ? 'col-checkbox'
+                    'border-b border-slate-200 px-3.5 py-2.5 align-top ' +
+                    (cell.column.id === 'select'
+                      ? 'w-px text-center'
                       : cell.column.id === 'total'
-                        ? 'col-right'
+                        ? 'whitespace-nowrap text-right'
                         : cell.column.id === 'mensagem'
-                          ? 'col-mensagem'
+                          ? 'min-w-70 max-w-105'
                           : cell.column.id === 'status'
-                            ? 'col-status'
-                            : undefined
+                            ? 'whitespace-nowrap'
+                            : '')
                   }
                 >
                   <table.FlexRender cell={cell} />

@@ -117,7 +117,7 @@ function App() {
   };
 
   return (
-    <div className="page">
+    <div className="box-border mx-auto flex w-full max-w-350 flex-col gap-5 px-6 pt-8 pb-16">
       <PageHeader />
 
       <Dropzone nomeArquivo={nomeArquivo} onFileSelected={processarArquivo} />
