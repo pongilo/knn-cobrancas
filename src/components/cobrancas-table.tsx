@@ -13,6 +13,7 @@ const ROTULOS: Record<(typeof COLUNAS_SAIDA)[number], string> = {
   alunos: 'Aluno(s)',
   telefone: 'Telefone',
   total: 'Total',
+  quantidade: 'Qtd. cobranças',
   mensagem: 'Mensagem',
 };
 
@@ -67,6 +68,9 @@ export function CobrancasTable({ linhas, rowSelection, onRowSelectionChange, sta
             <th className="sticky top-0 whitespace-nowrap border-b border-slate-200 bg-slate-100 px-3.5 py-2.5 align-top font-semibold text-slate-900">
               {ROTULOS.total}
             </th>
+            <th className="sticky top-0 whitespace-nowrap border-b border-slate-200 bg-slate-100 px-3.5 py-2.5 text-right align-top font-semibold text-slate-900">
+              {ROTULOS.quantidade}
+            </th>
             <th className="sticky top-0 whitespace-nowrap border-b border-slate-200 bg-slate-100 px-3.5 py-2.5 align-top font-semibold text-slate-900">
               {ROTULOS.mensagem}
             </th>
@@ -91,6 +95,9 @@ export function CobrancasTable({ linhas, rowSelection, onRowSelectionChange, sta
               <td className="border-b border-slate-200 px-3.5 py-2.5 align-top">{linha.telefone}</td>
               <td className="whitespace-nowrap border-b border-slate-200 px-3.5 py-2.5 text-right align-top">
                 {linha.total}
+              </td>
+              <td className="whitespace-nowrap border-b border-slate-200 px-3.5 py-2.5 text-right align-top">
+                {linha.quantidade}
               </td>
               <td className="min-w-70 max-w-105 border-b border-slate-200 px-3.5 py-2.5 align-top">
                 <MensagemCell

@@ -10,6 +10,7 @@ export interface LinhaCobranca {
   alunos: string;
   telefone: string;
   total: string;
+  quantidade: number;
   mensagem: string;
 }
 
@@ -244,6 +245,7 @@ export function gerarLinhas(rows: LinhaOrigem[]): LinhaCobranca[] {
       alunos: alunosNomes,
       telefone,
       total: `R$ ${fmt(soma)}`,
+      quantidade: members.length,
       mensagem,
     });
   }
@@ -262,6 +264,7 @@ export function gerarLinhas(rows: LinhaOrigem[]): LinhaCobranca[] {
     alunos: l.alunos,
     telefone: l.telefone,
     total: l.total,
+    quantidade: l.quantidade,
     mensagem: l.mensagem,
   }));
 }
