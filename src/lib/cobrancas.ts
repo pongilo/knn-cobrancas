@@ -131,13 +131,19 @@ function montarBlocoValor(soma: number): string {
 // Usado quando o responsavel tem ao menos uma parcela em atraso, juntando nela tudo que
 // ainda esta pendente (mesmo o que ainda vai vencer), para nao mandar avisos separados.
 function montarBlocoValorItemizado(membros: AlunoClassificado[], soma: number): string {
-  const nomesDistintos = new Set(membros.map((m) => m.aluno));
-  const linhas = membros
-    .map((m) => {
-      const prefixo = nomesDistintos.size > 1 ? `${m.aluno} - ` : '';
-      return `${prefixo} ${m.vencimento}: R$ ${fmt(m.total)}`;
-    })
+  const totaisPorVencimento = new Map<string, number>();
+  for (const m of membros) {
+    totaisPorVencimento.set(m.vencimento, (totaisPorVencimento.get(m.vencimento) ?? 0) + m.total);
+  }
+
+  const linhas = Array.from(totaisPorVencimento.entries())
+    .map(([vencimento, total]) => `${vencimento}: R$ ${fmt(total)}`)
     .join('\n');
+
+  if (totaisPorVencimento.size === 1) {
+    return `\n${linhas}`;
+  }
+
   return `\n${linhas}\nTotal: R$ ${fmt(soma)}`;
 }
 
