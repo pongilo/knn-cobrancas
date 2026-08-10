@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
-import type { RowSelectionState } from '@tanstack/react-table';
 import { lerCSV, toCSV } from '../lib/csv';
 import { COLUNAS_SAIDA, gerarLinhas, type LinhaCobranca } from '../lib/cobrancas';
 import { enviarWhatsapp } from '../lib/whatsapp';
@@ -9,7 +8,7 @@ import { PageHeader } from '../components/page-header';
 import { Dropzone } from '../components/dropzone';
 import { Alerta } from '../components/alerta';
 import { Toolbar } from '../components/toolbar';
-import { CobrancasTable } from '../components/cobrancas-table';
+import { CobrancasTable, type RowSelectionState } from '../components/cobrancas-table';
 import type { StatusEnvio } from '../components/status-badge';
 
 export const Route = createFileRoute('/')({ component: App });
@@ -54,7 +53,7 @@ function App() {
       setLinhas(result);
       setTotalOrigem(rows.length);
       setNomeArquivo(file.name);
-      setRowSelection(Object.fromEntries(result.map((_, idx) => [String(idx), true])));
+      setRowSelection(Object.fromEntries(result.map((_, idx) => [idx, true])));
       setStatusEnvio({});
       setErroEnvio(null);
     } catch (e) {
@@ -63,6 +62,16 @@ function App() {
     }
   }
 
+  const handleLimpar = () => {
+    setLinhas([]);
+    setNomeArquivo('');
+    setTotalOrigem(0);
+    setErro(null);
+    setRowSelection({});
+    setStatusEnvio({});
+    setErroEnvio(null);
+  };
+
   const handleExportar = () => {
     const csv = toCSV(COLUNAS_SAIDA, linhas, ';');
     const base = nomeArquivo.replace(/\.csv$/i, '') || 'cobrancas';
@@ -70,7 +79,7 @@ function App() {
   };
 
   const selecionadas = useMemo(
-    () => linhas.map((linha, index) => ({ index, linha })).filter(({ index }) => rowSelection[String(index)]),
+    () => linhas.map((linha, index) => ({ index, linha })).filter(({ index }) => rowSelection[index]),
     [linhas, rowSelection],
   );
   const algumaSelecionada = selecionadas.length > 0;
@@ -120,7 +129,7 @@ function App() {
     <div className="box-border mx-auto flex w-full max-w-350 flex-col gap-5 px-6 pt-8 pb-16">
       <PageHeader />
 
-      <Dropzone nomeArquivo={nomeArquivo} onFileSelected={processarArquivo} />
+      <Dropzone nomeArquivo={nomeArquivo} onFileSelected={processarArquivo} onLimpar={handleLimpar} />
 
       {erro && <Alerta mensagem={erro} />}
       {erroEnvio && <Alerta mensagem={erroEnvio} />}

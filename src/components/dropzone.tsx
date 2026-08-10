@@ -4,9 +4,10 @@ import type { ChangeEvent, DragEvent } from 'react';
 interface DropzoneProps {
   nomeArquivo: string;
   onFileSelected: (file: File) => void;
+  onLimpar: () => void;
 }
 
-export function Dropzone({ nomeArquivo, onFileSelected }: DropzoneProps) {
+export function Dropzone({ nomeArquivo, onFileSelected, onLimpar }: DropzoneProps) {
   const [arrastando, setArrastando] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -22,6 +23,23 @@ export function Dropzone({ nomeArquivo, onFileSelected }: DropzoneProps) {
     const file = e.dataTransfer.files?.[0];
     if (file) onFileSelected(file);
   };
+
+  if (nomeArquivo) {
+    return (
+      <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
+        <p className="m-0 text-base text-slate-600">
+          Arquivo carregado: <strong className="text-slate-900">{nomeArquivo}</strong>
+        </p>
+        <button
+          type="button"
+          onClick={onLimpar}
+          className="cursor-pointer rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
+        >
+          Limpar
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -48,15 +66,7 @@ export function Dropzone({ nomeArquivo, onFileSelected }: DropzoneProps) {
         onChange={handleInputChange}
         className="absolute inset-0 cursor-pointer opacity-0"
       />
-      <p className="text-base text-slate-600">
-        {nomeArquivo ? (
-          <>
-            Arquivo carregado: <strong className="text-slate-900">{nomeArquivo}</strong>
-          </>
-        ) : (
-          <>Arraste um arquivo .csv aqui ou clique para selecionar</>
-        )}
-      </p>
+      <p className="text-base text-slate-600">Arraste um arquivo .csv aqui ou clique para selecionar</p>
     </div>
   );
 }
