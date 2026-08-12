@@ -30,6 +30,7 @@ interface Aluno {
   responsavel: string;
   respCel: string;
   total: number;
+  linhasAgrupadas: number;
 }
 
 interface LinhaInterna extends LinhaCobranca {
@@ -169,10 +170,11 @@ export function gerarLinhas(rows: LinhaOrigem[]): LinhaCobranca[] {
 
     const key = aluno + '::' + venc;
     if (!students[key]) {
-      students[key] = { aluno, vencimento: venc, alunoCel, responsavel: resp, respCel, total: 0 };
+      students[key] = { aluno, vencimento: venc, alunoCel, responsavel: resp, respCel, total: 0, linhasAgrupadas: 0 };
     }
     const st = students[key];
     st.total += valor;
+    st.linhasAgrupadas += 1;
     if (resp && !st.responsavel) st.responsavel = resp;
     if (respCel && !st.respCel) st.respCel = respCel;
     if (alunoCel && !st.alunoCel) st.alunoCel = alunoCel;
@@ -251,7 +253,7 @@ export function gerarLinhas(rows: LinhaOrigem[]): LinhaCobranca[] {
       alunos: alunosNomes,
       telefone,
       total: `R$ ${fmt(soma)}`,
-      quantidade: members.length,
+      quantidade: members.reduce((a, m) => a + m.linhasAgrupadas, 0),
       mensagem,
     });
   }

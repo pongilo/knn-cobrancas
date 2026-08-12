@@ -9,23 +9,11 @@ export type RowSelectionState = Record<number, boolean>;
 
 const ROTULOS = {
   vencimento: 'Vencimento',
-  detalhe: 'Detalhe',
+  aluno: 'Aluno',
   telefone: 'Telefone',
   total: 'Total',
   mensagem: 'Mensagem',
 };
-
-function montarDetalhe(linha: LinhaCobranca): string {
-  const line = [linha.alunos]
-
-  if (linha.alunos !== linha.responsavel) {
-    line.push(`Responsável: ${linha.responsavel}`)
-  }
-
-  line.push(`Qtd. cobranças: ${linha.quantidade}`)
-
-  return line.join('\n')
-}
 
 interface CobrancasTableProps {
   linhas: LinhaCobranca[];
@@ -67,7 +55,7 @@ export function CobrancasTable({ linhas, rowSelection, onRowSelectionChange, sta
               {ROTULOS.vencimento}
             </th>
             <th className="sticky top-0 whitespace-nowrap border-b border-slate-200 bg-slate-100 px-3.5 py-2.5 align-top font-semibold text-slate-900">
-              {ROTULOS.detalhe}
+              {ROTULOS.aluno}
             </th>
             <th className="sticky top-0 whitespace-nowrap border-b border-slate-200 bg-slate-100 px-3.5 py-2.5 align-top font-semibold text-slate-900">
               {ROTULOS.telefone}
@@ -93,9 +81,21 @@ export function CobrancasTable({ linhas, rowSelection, onRowSelectionChange, sta
                   aria-label={`Selecionar linha de ${linha.responsavel}`}
                 />
               </td>
-              <td className="border-b border-slate-200 px-3.5 py-2.5 align-top">{linha.vencimento}</td>
+              <td className="border-b border-slate-200 px-3.5 py-2.5 align-top">
+                {linha.vencimento}
+                {linha.quantidade > 1 && (
+                  <span className="ml-1 text-sm text-slate-500">
+                    ({linha.quantidade})
+                  </span>
+                )}
+              </td>
               <td className="whitespace-pre-line border-b border-slate-200 px-3.5 py-2.5 align-top">
-                {montarDetalhe(linha)}
+                {linha.alunos}
+                {linha.alunos !== linha.responsavel && (
+                  <span className="block text-sm text-slate-500">
+                    ({linha.responsavel})
+                  </span>
+                )}
               </td>
               <td className="border-b border-slate-200 px-3.5 py-2.5 align-top">{linha.telefone}</td>
               <td className="whitespace-nowrap border-b border-slate-200 px-3.5 py-2.5 text-right align-top">
