@@ -234,9 +234,9 @@ export function gerarLinhas(rows: LinhaOrigem[]): LinhaCobranca[] {
     const telefone = first.telefoneChave;
 
     // O grupo e por numero, entao pode haver mais de um nome de responsavel associado
-    // ao mesmo telefone (ex.: grafias diferentes na planilha) — usa o primeiro encontrado.
+    // ao mesmo telefone (ex.: alunos diferentes com responsaveis diferentes) — lista todos.
     const nomesResponsavel = [...new Set(members.map((m) => m.responsavel).filter(Boolean))];
-    const responsavel = nomesResponsavel.length > 0 ? nomesResponsavel[0] : first.aluno;
+    const responsavel = nomesResponsavel.length > 0 ? nomesResponsavel.join(', ') : first.aluno;
 
     const soma = members.reduce((a, b) => a + b.total, 0);
     const venc = first.vencimento; // parcela mais antiga do grupo
