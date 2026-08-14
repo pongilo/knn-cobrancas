@@ -4,7 +4,6 @@ import { useServerFn } from '@tanstack/react-start';
 import { lerCSV } from '../lib/csv';
 import { gerarLinhas, type LinhaCobranca } from '../lib/cobrancas';
 import { enviarWhatsapp } from '../lib/whatsapp';
-import { PageHeader } from '../components/page-header';
 import { Dropzone } from '../components/dropzone';
 import { Alerta } from '../components/alerta';
 import { Toolbar } from '../components/toolbar';
@@ -92,10 +91,12 @@ function App() {
   };
 
   return (
-    <div className="box-border mx-auto flex w-full max-w-350 flex-col gap-5 px-6 pt-8 pb-16">
-      <PageHeader />
+    <div className="box-border mx-auto min-h-screen flex w-full max-w-7xl flex-col gap-5 p-6">
+      <h1 className=" text-3xl font-medium tracking-tight text-slate-900">Conversor de Cobranças</h1>
 
-      <Dropzone nomeArquivo={nomeArquivo} onFileSelected={processarArquivo} onLimpar={handleLimpar} />
+      <div className="flex-1 flex flex-col">
+        <Dropzone nomeArquivo={nomeArquivo} onFileSelected={processarArquivo} onLimpar={handleLimpar} />
+      </div>
 
       {erro && <Alerta mensagem={erro} />}
       {erroEnvio && <Alerta mensagem={erroEnvio} />}

@@ -44,7 +44,7 @@ export function Dropzone({ nomeArquivo, onFileSelected, onLimpar }: DropzoneProp
   return (
     <div
       className={
-        'relative cursor-pointer rounded-xl border-2 border-dashed px-5 py-10 text-center outline-none transition-colors ' +
+        'relative cursor-pointer rounded-xl border-2 border-dashed px-5 py-10 h-full flex-1 flex items-center justify-center text-center outline-none transition-colors ' +
         (arrastando
           ? 'border-blue-500 bg-blue-50'
           : 'border-slate-300 hover:border-blue-400 hover:bg-blue-50 focus-visible:border-blue-400 focus-visible:bg-blue-50')
