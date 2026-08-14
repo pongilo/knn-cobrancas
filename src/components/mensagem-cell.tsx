@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 interface MensagemCellProps {
   mensagem: string;
   expandida: boolean;
@@ -5,6 +7,14 @@ interface MensagemCellProps {
 }
 
 export function MensagemCell({ mensagem, expandida, onToggle }: MensagemCellProps) {
+  const [copiado, setCopiado] = useState(false);
+
+  const handleCopiar = async () => {
+    await navigator.clipboard.writeText(mensagem);
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 1500);
+  };
+
   return (
     <>
       <pre
@@ -15,13 +25,22 @@ export function MensagemCell({ mensagem, expandida, onToggle }: MensagemCellProp
       >
         {mensagem}
       </pre>
-      <button
-        type="button"
-        className="border-none bg-transparent p-0 text-[13px] text-blue-600 underline hover:text-blue-700"
-        onClick={onToggle}
-      >
-        {expandida ? 'recolher' : 'expandir'}
-      </button>
+      <div className="flex gap-3">
+        <button
+          type="button"
+          className="border-none bg-transparent p-0 text-[13px] text-blue-600 underline hover:text-blue-700"
+          onClick={onToggle}
+        >
+          {expandida ? 'recolher' : 'expandir'}
+        </button>
+        <button
+          type="button"
+          className="border-none bg-transparent p-0 text-[13px] text-blue-600 underline hover:text-blue-700"
+          onClick={handleCopiar}
+        >
+          {copiado ? 'copiado!' : 'copiar'}
+        </button>
+      </div>
     </>
   );
 }

@@ -12,16 +12,8 @@ export interface LinhaCobranca {
   total: string;
   quantidade: number;
   mensagem: string;
+  tipo: TipoMensagem;
 }
-
-export const COLUNAS_SAIDA: (keyof LinhaCobranca)[] = [
-  'vencimento',
-  'responsavel',
-  'alunos',
-  'telefone',
-  'total',
-  'mensagem',
-];
 
 interface Aluno {
   aluno: string;
@@ -109,19 +101,19 @@ function diasAteVencimento(s: string, hojeUTC: number): number | null {
   return Math.round((vencUTC - hojeUTC) / 86400000);
 }
 
-// 'futuro' e uma classificacao interna (parcela distante demais para ser cobrada agora)
-// que nunca chega a virar mensagem, entao nao faz parte de TipoMensagem.
+// 'futuro' e uma classificacao interna (fora dos pontos de contato: D-1/D-2 antes do
+// vencimento ou mais de 3 dias de antecedencia) que nunca chega a virar mensagem,
+// entao nao faz parte de TipoMensagem.
 type Tipo = TipoMensagem | 'futuro';
 
 function classificarGrupo(diff: number | null): { ordem: number; tipo: Tipo } {
   if (diff === null) return { ordem: 99, tipo: 'invalida' };
-  if (diff <= -2) return { ordem: 1, tipo: 'atraso' };
-  if (diff === -1) return { ordem: 2, tipo: 'carencia' };
-  if (diff === 0) return { ordem: 3, tipo: 'hoje' };
-  if (diff === 1) return { ordem: 4, tipo: 'umDiaAntes' };
-  if (diff === 2) return { ordem: 5, tipo: 'doisDiasAntes' };
-  if (diff === 3) return { ordem: 6, tipo: 'tresDiasAntes' };
-  return { ordem: 7, tipo: 'futuro' }; // sera descartado, nao e mais cobrado
+  if (diff <= -15) return { ordem: 1, tipo: 'muitoAtraso' };
+  if (diff <= -2) return { ordem: 2, tipo: 'atraso' };
+  if (diff === -1) return { ordem: 3, tipo: 'carencia' };
+  if (diff === 0) return { ordem: 4, tipo: 'hoje' };
+  if (diff === 3) return { ordem: 5, tipo: 'tresDiasAntes' };
+  return { ordem: 6, tipo: 'futuro' }; // sera descartado (inclui D-1, D-2 antes do vencimento)
 }
 
 function montarBlocoValor(soma: number): string {
@@ -159,8 +151,8 @@ export function gerarLinhas(rows: LinhaOrigem[]): LinhaCobranca[] {
     const aluno = String(r['Entidade - Nome'] || '').trim();
     if (!aluno) continue;
 
-    const status = normalizarStatus(r['Status']);
-    if (status !== 'em aberto') continue;
+    // const status = normalizarStatus(r['Status']);
+    // if (status !== 'em aberto') continue;
 
     const alunoCel = String(r['Aluno - Celular'] || '').trim();
     const resp = String(r['Responsável Financeiro'] || '').trim();
@@ -180,8 +172,9 @@ export function gerarLinhas(rows: LinhaOrigem[]): LinhaCobranca[] {
     if (alunoCel && !st.alunoCel) st.alunoCel = alunoCel;
   }
 
-  // 2) Classifica cada parcela (aluno + vencimento) individualmente e descarta as futuras
-  // (mais de 3 dias de antecedencia, ainda nao ha cobranca para esse caso).
+  // 2) Classifica cada parcela (aluno + vencimento) individualmente e descarta o que
+  // esta fora dos pontos de contato: D-1/D-2 antes do vencimento e mais de 3 dias de
+  // antecedencia (ainda nao ha cobranca para esses casos).
   const entradas: AlunoClassificado[] = [];
   for (const key in students) {
     const st = students[key];
@@ -212,7 +205,7 @@ export function gerarLinhas(rows: LinhaOrigem[]): LinhaCobranca[] {
   const groups: Record<string, AlunoClassificado[]> = {};
   for (const telefoneKey in porTelefone) {
     const entradasTel = porTelefone[telefoneKey];
-    const temAtraso = entradasTel.some((e) => e.tipo === 'atraso');
+    const temAtraso = entradasTel.some((e) => e.tipo === 'atraso' || e.tipo === 'muitoAtraso');
     if (temAtraso) {
       groups[telefoneKey + '::atraso'] = entradasTel;
       continue;
@@ -242,7 +235,10 @@ export function gerarLinhas(rows: LinhaOrigem[]): LinhaCobranca[] {
     const venc = first.vencimento; // parcela mais antiga do grupo
     const alunosNomes = [...new Set(members.map((m) => m.aluno))].join(', ');
 
-    const valorBloco = first.tipo === 'atraso' ? montarBlocoValorItemizado(members, soma) : montarBlocoValor(soma);
+    const valorBloco =
+      first.tipo === 'atraso' || first.tipo === 'muitoAtraso'
+        ? montarBlocoValorItemizado(members, soma)
+        : montarBlocoValor(soma);
     const mensagem = montarMensagem(first.tipo, venc, valorBloco);
 
     linhas.push({
@@ -255,6 +251,7 @@ export function gerarLinhas(rows: LinhaOrigem[]): LinhaCobranca[] {
       total: `R$ ${fmt(soma)}`,
       quantidade: members.reduce((a, m) => a + m.linhasAgrupadas, 0),
       mensagem,
+      tipo: first.tipo,
     });
   }
 
@@ -274,5 +271,6 @@ export function gerarLinhas(rows: LinhaOrigem[]): LinhaCobranca[] {
     total: l.total,
     quantidade: l.quantidade,
     mensagem: l.mensagem,
+    tipo: l.tipo,
   }));
 }

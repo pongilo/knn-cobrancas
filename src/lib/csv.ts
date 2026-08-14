@@ -13,7 +13,3 @@ export function lerCSV(file: File): Promise<Record<string, string>[]> {
     });
   });
 }
-
-export function toCSV<T extends object>(columns: (keyof T & string)[], records: T[], delimiter: string): string {
-  return Papa.unparse(records, { columns, delimiter, newline: '\r\n' });
-}
