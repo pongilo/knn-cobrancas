@@ -20,7 +20,7 @@ const CORES: Record<TipoMensagem, string> = {
 
 export function MensagemStatusBadge({ tipo }: { tipo: TipoMensagem }) {
   return (
-    <span className={'inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ' + CORES[tipo]}>
+    <span className={'inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold text-nowrap ' + CORES[tipo]}>
       {ROTULOS[tipo]}
     </span>
   );
